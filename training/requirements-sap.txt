@@ -1,0 +1,10 @@
+# Training environment for the sap/ scripts (Python 3.10+).
+# The current models were saved with transformers 5.4.0, so stay on 5.x.
+torch
+transformers>=5.4,<6
+peft>=0.17
+accelerate
+soundfile
+librosa
+numpy
+jiwer

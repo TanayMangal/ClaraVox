@@ -1,0 +1,139 @@
+<!-- Wavesurfer & Wavesurfer plugin Record was used to create audio wave. Code was taken from Github: https://github.com/katspaugh/wavesurfer.js/. CanvasRenderingContext2D: roundRect() was used to alter waveform shape and code was taken from https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/roundRect. Button play/pause script was taken and altered from https://stackoverflow.com/questions/24278469/click-a-button-programmatically-js.  -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClaraVox</title>
+  <meta name="description" content="ClaraVox turns atypical speech into clear spoken English.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="beta.css">
+  <link rel="stylesheet" href="theme.css">
+  <meta name="theme-color" content="#0f4c4c">
+</head>
+<body>
+<script>try { if (localStorage.getItem("claravox.contrast") === "1") document.body.classList.add("active"); } catch (e) {}</script>
+
+<div class="top-left-fixed">ClaraVox</div>
+
+<button class="settings-icon-button" onclick="toggleSettings()" title="Settings" aria-label="Settings">
+  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    
+  </svg>
+</button>
+
+<div class="settings-overlay" id="settings-overlay" onclick="toggleSettings()"></div>
+<div class="settings-modal" id="settings-modal" role="dialog" aria-label="Settings">
+  <button class="settings-modal-close" onclick="toggleSettings()" aria-label="Close">&#x2715;</button>
+  <h2 class="settings-modal-title">Settings</h2>
+  <div class="settings-entry">
+    <button class="settings-item" id="toggle-contrast" onclick="toggleMode()">High contrast: Off</button>
+    <div class="settings-item-detail"></div>
+    <!-- contrast function accessed in html, js, and css, was developed with the help of W3 Schools -->
+  </div>
+  <div class="settings-entry">
+    <button class="settings-item" id="toggle-review">Ask before speaking: On</button>
+    <div class="settings-item-detail"></div>
+  </div>
+  <div class="settings-entry">
+    <button class="settings-item" onclick="toggleSetting(this)">Help</button>
+    <div class="settings-item-detail">Tap the button and talk. Tap again when you're done. Tap any word to change it. Your history stays on this device only.</div>
+  </div>
+  <div class="settings-entry">
+    <button class="settings-item" onclick="toggleSetting(this)">Information</button>
+    <div class="settings-item-detail">ClaraVox turns atypical speech into clear spoken English. Speech model trained on the Speech Accessibility Project (University of Illinois) and TORGO data. Submission for Apps for Good 2026 and the Congressional App Challenge.</div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="button-wrapper">
+    <div class="liquid-wrapper">
+      <div class="liquid_shape liquid-body"></div>
+    </div>
+    <div class="button-body disabled" id="btnWrap">
+      <img id="btn" src="Images/Play_Button_teal.png" alt="Start recording" role="button" tabindex="0">
+    </div>
+  </div>
+  <div id="waveform" class="audio-container"></div>
+  <div class="spinner-wrap">
+    <div class="spinner" id="spinner"></div>
+  </div>
+  <p class="status warming dot-pulse" id="status" aria-live="polite">Connecting</p>
+
+  
+  <section class="result-card" id="result" hidden aria-live="polite">
+    <p class="review-note" id="review-note" hidden>I'm not sure I got that. Tap a word to fix it, then press Speak.</p>
+    <p class="result-sentence" id="result-sentence"></p>
+    <p class="result-heard" id="result-heard"></p>
+    <div class="result-alts" id="result-alts"></div>
+    <div class="result-actions">
+      <button class="pill" id="speak-btn">Speak</button>
+      <button class="pill" id="fav-btn" aria-pressed="false">Save phrase</button>
+    </div>
+  </section>
+</div>
+
+<nav class="dock">
+  <button class="dock-btn" id="open-history">History</button>
+  <button class="dock-btn" id="open-favorites">Favorites</button>
+  <button class="dock-btn" id="open-practice">My words</button>
+</nav>
+
+<div class="word-pop" id="word-pop" hidden role="dialog" aria-label="Word options">
+  <div class="word-pop-list" id="word-pop-list"></div>
+  <button class="word-pop-more" id="word-pop-more">More options</button>
+</div>
+
+<div class="panel-overlay" id="history-overlay"></div>
+<section class="panel" id="history-panel" role="dialog" aria-label="History" hidden>
+  <button class="settings-modal-close" data-close="history" aria-label="Close">&#x2715;</button>
+  <h2 class="panel-title">History</h2>
+  <div class="day-nav">
+    <button class="pill small" id="day-prev" aria-label="Previous day">&lsaquo;</button>
+    <span id="day-label">Today</span>
+    <button class="pill small" id="day-next" aria-label="Next day">&rsaquo;</button>
+  </div>
+  <div class="day-summary" id="day-summary"></div>
+  <ol class="history-list" id="history-list"></ol>
+  <button class="pill danger" id="clear-history">Clear history</button>
+</section>
+
+<div class="panel-overlay" id="favorites-overlay"></div>
+<section class="panel" id="favorites-panel" role="dialog" aria-label="Favorite phrases" hidden>
+  <button class="settings-modal-close" data-close="favorites" aria-label="Close">&#x2715;</button>
+  <h2 class="panel-title">Favorite phrases</h2>
+  <p class="panel-hint" id="favorites-hint"></p>
+  <ol class="history-list" id="favorites-list"></ol>
+</section>
+
+<div class="panel-overlay" id="practice-overlay"></div>
+<section class="panel" id="practice-panel" role="dialog" aria-label="My words" hidden>
+  <button class="settings-modal-close" data-close="practice" aria-label="Close">&#x2715;</button>
+  <h2 class="panel-title">My words</h2>
+  <div class="range-tabs">
+    <button class="pill small selected" data-range="1">Today</button>
+    <button class="pill small" data-range="7">This week</button>
+    <button class="pill small" data-range="0">All time</button>
+  </div>
+  <p class="panel-hint" id="practice-hint">Words that were hard to understand show up here.</p>
+  <ol class="word-list" id="practice-words"></ol>
+  <div class="practice-stage" id="practice-stage" hidden>
+    <p class="practice-target" id="practice-target"></p>
+    <div class="practice-buttons">
+      <button class="pill" id="practice-hear">Hear it</button>
+      <button class="pill big" id="practice-say">Say it</button>
+    </div>
+    <div class="practice-feedback" id="practice-feedback" aria-live="polite"></div>
+    <div class="practice-tries" id="practice-tries"></div>
+  </div>
+</section>
+
+<script type="module" src="app.js"></script>
+<script src="script.js" defer></script>
+</body>
+</html>
