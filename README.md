@@ -6,6 +6,8 @@ It is built for people whose speech is hard for others (and for normal voice ass
 
 ClaraVox grew out of A.R.T.I.C.U.L.A.T.E., our Apps for Good 2026 project.
 
+Here is the Hugging Face models totest them out and to see them: https://huggingface.co/PINEAPPLEANANAS/ClaraVox-models and https://huggingface.co/spaces/PINEAPPLEANANAS/SpeechCorrection
+
 **Try it:** [claravox-zeta.vercel.app](https://claravox-zeta.vercel.app) (works best in Chrome or Edge; the first message after a quiet spell takes about 30 s while the server wakes up).
 
 ## What it does
